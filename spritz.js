@@ -93,7 +93,7 @@ function spritzify(input){
     // remove leading spaces 
     var input = input.replace(/\s+/,'');
     // remove spaces at end
-    for(var last = input.length-1; input[last]===' '; input=input.substring(0,last)){}
+    for(var last = input.length; input[--last]===' '; input=input.substring(0,last)){}
 
     // make ms_per_word a function
     var ms_per_word = function () {
