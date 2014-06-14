@@ -7,6 +7,10 @@
 var readability_token = '172b057cd7cfccf27b60a36f16b1acde12783893';
 var diffbot_token = '2efef432c72b5a923408e04353c39a7c';
 
+// introducing global  running instead of local.running
+// toDo: change spritz into ONE global spritz-object
+var running = false;
+
 function create_spritz(){
 
      spritz_loader = function() {
@@ -65,7 +69,10 @@ function hide_spritz(){
 // Entry point to the beef.
 // Gets the WPM and the selected text, if any.
 function spritz(){
-
+    
+    // in case spritz was running without being displayed, clear all running timers
+    clearTimeouts();
+    
     var wpm = parseInt(document.getElementById("spritz_selector").value, 10);
     if(wpm < 1){
         return;
@@ -82,24 +89,19 @@ function spritz(){
 
 // The meat!
 function spritzify(input){
+    // sanitize the input
+    // remove leading spaces 
+    var input = input.replace(/\s+/,'');
+    // remove spaces at end
+    for(var last = input.length-1; input[last]===' '; input=input.substring(0,last)){}
 
-    var wpm = parseInt(document.getElementById("spritz_selector").value, 10);
-    var ms_per_word = 60000/wpm;
+    // make ms_per_word a function
+    var ms_per_word = function () {
+        return (60000 / parseInt($$("spritz_selector").value, 10));
+    };
 
     // Split on any spaces.
     var all_words = input.split(/\s+/);
-
-    // The reader won't stop if the selection starts or ends with spaces
-    if (all_words[0] == "")
-    {
-        all_words = all_words.slice(1, all_words.length);
-    }
-
-    if (all_words[all_words.length - 1] == "")
-    {
-        all_words = all_words.slice(0, all_words.length - 1);
-    }
-
     var word = '';
     var result = '';
 
@@ -139,7 +141,6 @@ function spritzify(input){
 
     var currentWord = 0;
     var running = true;
-    var spritz_timers = new Array();
 
     document.getElementById("spritz_toggle").addEventListener("click", function() {
         if(running) {
@@ -164,20 +165,19 @@ function spritzify(input){
 
         running = true;
 
-        spritz_timers.push(setInterval(function() {
+        setInterval(function() {
             updateValues(currentWord);
             currentWord++;
             if(currentWord >= all_words.length) {
                 currentWord = 0;
                 stopSpritz();
             }
-        }, ms_per_word));
+        }, ms_per_word());
     }
 
     function stopSpritz() {
-        for(var i = 0; i < spritz_timers.length; i++) {
-            clearTimeout(spritz_timers[i]);
-        }
+
+        clearTimeouts();
 
         document.getElementById("spritz_toggle").textContent = "Play";
         running = false;
@@ -253,12 +253,7 @@ function getSelectionText() {
             text = document.selection.createRange().text;
         }
     }
-    if(text === ""){
-        return false;
-    }
-    else{
-        return text;
-    }
+    return text;
 }
 
 // Uses the Readability API to get the juicy content of the current page.
