@@ -97,7 +97,7 @@ function spritzify(input){
 
     // make ms_per_word a function
     var ms_per_word = function () {
-        return (60000 / parseInt($$("spritz_selector").value, 10));
+        return (60000 / parseInt(document.getElementById("spritz_selector").value, 10));
     };
 
     // Split on any spaces.
